@@ -1,3 +1,6 @@
 [submodule "agnos-frontend"]
 	path = agnos-frontend
 	url = https://github.com/NayPaingSoe/agnos-assignment.git
+[submodule "websocket-server"]
+	path = websocket-server
+	url = https://github.com/NayPaingSoe/agnos-websocket.git
