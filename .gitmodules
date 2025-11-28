@@ -1,0 +1,3 @@
+[submodule "agnos-frontend"]
+	path = agnos-frontend
+	url = https://github.com/NayPaingSoe/agnos-assignment.git
