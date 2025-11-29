@@ -16,31 +16,6 @@ Real-time patient registration system with dual interfaces:
 
 Uses WebSocket technology for instant synchronization between interfaces.
 
-## ✨ Key Features
-
-### Patient Form Features
-
-- **Comprehensive Data Collection**: Personal details, emergency contacts, preferences
-- **Real-time Validation**: Instant field feedback with proper rules
-- **Responsive Design**: Mobile and desktop optimized
-- **User-Friendly Interface**: Clean design with clear labeling
-
-### Staff Dashboard Features
-
-- **Real-time Monitoring**: See patient info as it's typed
-- **Status Indicators**: Activity status (filling, inactive, submitted)
-- **Patient Management**: View, manage, remove records
-- **Multi-Patient Support**: Handle multiple patients simultaneously
-- **Responsive Layout**: Works across all screen sizes
-
-### Technical Features
-
-- **WebSocket Integration**: Real-time bidirectional communication
-- **Framer Motion**: Smooth animations and transitions
-- **Modern UI Components**: shadcn/ui with Tailwind CSS
-- **Form Validation**: Zod + React Hook Form validation
-- **Error Handling**: Robust feedback system
-
 ## 🛠️ Tech Stack
 
 ### Frontend
@@ -62,38 +37,6 @@ Uses WebSocket technology for instant synchronization between interfaces.
 
 - **Vercel**: Frontend deployment
 - **Railway**: WebSocket server deployment
-
-## 📁 Project Structure
-
-```
-agnos-assignment/
-├── agnos-frontend/                 # Next.js frontend application
-│   ├── src/
-│   │   ├── app/                   # Next.js app router
-│   │   │   ├── patient/           # Patient form page
-│   │   │   ├── staff/             # Staff dashboard page
-│   │   │   └── layout.js          # Root layout
-│   │   ├── components/            # Reusable UI components
-│   │   │   └── ui/                # UI component library
-│   │   │       ├── badge.jsx      # Status badge component
-│   │   │       ├── button.jsx     # Button component
-│   │   │       ├── card.jsx       # Card component
-│   │   │       ├── date-picker.jsx # Date picker component
-│   │   │       ├── input.jsx      # Input component
-│   │   │       ├── label.jsx      # Label component
-│   │   │       ├── motion-container.jsx # Framer Motion animation components
-│   │   │       ├── select.jsx     # Select dropdown component
-│   │   │       └── sonner.jsx     # Toast notification component
-│   │   └── lib/
-│   │       ├── config.js          # Application configuration
-│   │       └── utils.js           # Utility functions
-│   ├── public/                    # Static assets
-│   └── package.json               # Frontend dependencies
-├── websocket-server/              # Socket.io server
-│   ├── index.js                   # WebSocket server implementation
-│   └── package.json               # Server dependencies
-└── README.md                      # Project documentation
-```
 
 ## 🚀 Setup Instructions
 
@@ -131,15 +74,62 @@ agnos-assignment/
    - Patient: `http://localhost:3000/patient`
    - Staff: `http://localhost:3000/staff`
 
-## 🔧 Component Architecture
+## 📁 Project Structure
 
-#### Patient Form (`/patient`)
+```
+agnos-assignment/
+├── agnos-frontend/                 # Next.js frontend application
+│   ├── src/
+│   │   ├── app/                   # Next.js app router
+│   │   │   ├── patient/           # Patient form page
+│   │   │   ├── staff/             # Staff dashboard page
+│   │   │   └── layout.js          # Root layout
+│   │   ├── components/            # Reusable UI components
+│   │   │   └── ui/                # UI component library
+│   │   │       ├── badge.jsx      # Status badge component
+│   │   │       ├── button.jsx     # Button component
+│   │   │       ├── card.jsx       # Card component
+│   │   │       ├── date-picker.jsx # Date picker component
+│   │   │       ├── input.jsx      # Input component
+│   │   │       ├── label.jsx      # Label component
+│   │   │       ├── motion-container.jsx # Framer Motion animation components
+│   │   │       ├── select.jsx     # Select dropdown component
+│   │   │       └── sonner.jsx     # Toast notification component
+│   │   └── lib/
+│   │       ├── config.js          # Application configuration
+│   │       └── utils.js           # Utility functions
+│   ├── public/                    # Static assets
+│   └── package.json               # Frontend dependencies
+├── websocket-server/              # Socket.io server
+│   ├── index.js                   # WebSocket server implementation
+│   └── package.json               # Server dependencies
+└── README.md                      # Project documentation
+```
 
-- Real-time validation, WebSocket sync, responsive layout
+## ✨ Key Features
 
-#### Staff Dashboard (`/staff`)
+### Patient Form Features
 
-- Patient monitoring, status indicators, real-time updates
+- **Comprehensive Data Collection**: Personal details, emergency contacts, preferences
+- **Real-time Validation**: Instant field feedback with proper rules
+- **Responsive Design**: Mobile and desktop optimized
+- **User-Friendly Interface**: Clean design with clear labeling
+
+### Staff Dashboard Features
+
+- **Real-time Monitoring**: See patient info as it's typed
+- **Status Indicators**: Activity status (filling, inactive, submitted)
+- **Patient Management**: View, manage, remove records
+- **Multi-Patient Support**: Handle multiple patients simultaneously
+- **Responsive Layout**: Works across all screen sizes
+
+### Technical Features
+
+- **WebSocket Integration**: Real-time bidirectional communication
+- **Framer Motion**: Smooth animations and transitions
+- **Modern UI Components**: shadcn/ui with Tailwind CSS
+- **Form Validation**: Zod + React Hook Form validation
+- **Error Handling**: Robust feedback system
 
 ## ⚡ Real-time Synchronization Flow
 
