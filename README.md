@@ -74,38 +74,6 @@ Uses WebSocket technology for instant synchronization between interfaces.
    - Patient: `http://localhost:3000/patient`
    - Staff: `http://localhost:3000/staff`
 
-## 📁 Project Structure
-
-```
-agnos-assignment/
-├── agnos-frontend/                 # Next.js frontend application
-│   ├── src/
-│   │   ├── app/                   # Next.js app router
-│   │   │   ├── patient/           # Patient form page
-│   │   │   ├── staff/             # Staff dashboard page
-│   │   │   └── layout.js          # Root layout
-│   │   ├── components/            # Reusable UI components
-│   │   │   └── ui/                # UI component library
-│   │   │       ├── badge.jsx      # Status badge component
-│   │   │       ├── button.jsx     # Button component
-│   │   │       ├── card.jsx       # Card component
-│   │   │       ├── date-picker.jsx # Date picker component
-│   │   │       ├── input.jsx      # Input component
-│   │   │       ├── label.jsx      # Label component
-│   │   │       ├── motion-container.jsx # Framer Motion animation components
-│   │   │       ├── select.jsx     # Select dropdown component
-│   │   │       └── sonner.jsx     # Toast notification component
-│   │   └── lib/
-│   │       ├── config.js          # Application configuration
-│   │       └── utils.js           # Utility functions
-│   ├── public/                    # Static assets
-│   └── package.json               # Frontend dependencies
-├── websocket-server/              # Socket.io server
-│   ├── index.js                   # WebSocket server implementation
-│   └── package.json               # Server dependencies
-└── README.md                      # Project documentation
-```
-
 ## ✨ Key Features
 
 ### Patient Form Features
@@ -131,40 +99,11 @@ agnos-assignment/
 - **Form Validation**: Zod + React Hook Form validation
 - **Error Handling**: Robust feedback system
 
-## ⚡ Real-time Synchronization Flow
-
-### WebSocket Event Flow
-
-1. **Patient Connection**
-
-   ```
-   Patient → Socket.io → "join" event → Server registers patient
-   ```
-
-2. **Real-time Updates**
-
-   ```
-   Patient types → Form validation → "patient:update" → Server → Staff dashboard update
-   ```
-
-3. **Form Submission**
-
-   ```
-   Patient submits → "patient:submit" → Server → Status change → Staff notification
-   ```
-
-4. **Patient Disconnection**
-   ```
-   Patient disconnects → Server detects → Status to "inactive" → Staff dashboard update
-   ```
-
-### Status Management
-
-- **Actively Filling**: Currently typing/interacting
-- **Inactive**: Disconnected without submitting
-- **Submitted**: Successfully completed
-
 ## 🌟 Bonus Features
+
+### Inactivity Detection
+
+- Automatically marks patient as 'inactive' after 5-10 seconds of no activity (unless submitted)
 
 ### shadcn/ui Integration
 
