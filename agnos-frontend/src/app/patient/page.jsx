@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -20,6 +20,21 @@ import { toast } from "sonner";
 import { config } from "@/lib/config";
 
 const socket = io(config.websocket.url);
+const FORM_FIELDS = [
+  "firstName",
+  "middleName",
+  "lastName",
+  "dob",
+  "gender",
+  "phone",
+  "email",
+  "address",
+  "language",
+  "nationality",
+  "emergencyContactName",
+  "emergencyContactRelationship",
+  "religion",
+];
 
 export default function PatientPage() {
   const schema = z.object({
@@ -76,12 +91,37 @@ export default function PatientPage() {
     socket.emit("join", "patient");
   }, []);
 
+  const isSyncingRef = useRef(false);
+
   useEffect(() => {
     const subscription = watch((values) => {
+      if (isSyncingRef.current) return;
       socket.emit("patient:update", values);
     });
     return () => subscription.unsubscribe();
   }, [watch]);
+
+  useEffect(() => {
+    const handleSync = (serverValues) => {
+      isSyncingRef.current = true;
+      FORM_FIELDS.forEach((field) => {
+        if (serverValues[field] !== undefined) {
+          setValue(field, serverValues[field], {
+            shouldValidate: true,
+            shouldDirty: false,
+          });
+        }
+      });
+      requestAnimationFrame(() => {
+        isSyncingRef.current = false;
+      });
+    };
+
+    socket.on("patient:sync", handleSync);
+    return () => {
+      socket.off("patient:sync", handleSync);
+    };
+  }, [setValue]);
 
   const onSubmit = () => {
     socket.emit("patient:submit");

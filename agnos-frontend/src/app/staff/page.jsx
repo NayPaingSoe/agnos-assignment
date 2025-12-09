@@ -54,6 +54,35 @@ export default function StaffPage() {
   const [patients, setPatients] = useState({});
   const [selectedId, setSelectedId] = useState(null);
 
+  const handlePatientFieldChange = useCallback(
+    (field, value) => {
+      if (!selectedId) return;
+
+      setPatients((previousPatients) => {
+        const currentPatient = previousPatients[selectedId];
+        if (!currentPatient) return previousPatients;
+        if (currentPatient[field] === value) return previousPatients;
+
+        const updatedPatient = {
+          ...currentPatient,
+          [field]: value,
+          _updatedAt: Date.now(),
+        };
+
+        socket.emit("staff:update", {
+          id: selectedId,
+          data: { [field]: value },
+        });
+
+        return {
+          ...previousPatients,
+          [selectedId]: updatedPatient,
+        };
+      });
+    },
+    [selectedId]
+  );
+
   const handleRemovePatient = useCallback(
     (patientId) => {
       setPatients((previousPatients) => {
@@ -295,7 +324,12 @@ export default function StaffPage() {
                       <Input
                         id="firstname"
                         value={selectedPatient.firstName || ""}
-                        readOnly
+                        onChange={(event) =>
+                          handlePatientFieldChange(
+                            "firstName",
+                            event.target.value
+                          )
+                        }
                       />
                     </div>
                     <div>
@@ -303,7 +337,12 @@ export default function StaffPage() {
                       <Input
                         id="middlename"
                         value={selectedPatient.middleName || ""}
-                        readOnly
+                        onChange={(event) =>
+                          handlePatientFieldChange(
+                            "middleName",
+                            event.target.value
+                          )
+                        }
                       />
                     </div>
                     <div>
@@ -313,7 +352,12 @@ export default function StaffPage() {
                       <Input
                         id="lastname"
                         value={selectedPatient.lastName || ""}
-                        readOnly
+                        onChange={(event) =>
+                          handlePatientFieldChange(
+                            "lastName",
+                            event.target.value
+                          )
+                        }
                       />
                     </div>
 
@@ -324,7 +368,9 @@ export default function StaffPage() {
                       <DatePicker
                         id="dob"
                         value={selectedPatient.dob || ""}
-                        readOnly
+                        onChange={(event) =>
+                          handlePatientFieldChange("dob", event.target.value)
+                        }
                       />
                     </div>
 
@@ -333,10 +379,11 @@ export default function StaffPage() {
                         Gender <span className="text-red-600">*</span>
                       </Label>
                       <Select
-                        disabled
                         id="gender"
                         value={selectedPatient.gender || ""}
-                        readOnly
+                        onChange={(event) =>
+                          handlePatientFieldChange("gender", event.target.value)
+                        }
                       >
                         {GENDER_OPTIONS.map((option) => (
                           <option key={option.value} value={option.value}>
@@ -353,7 +400,9 @@ export default function StaffPage() {
                       <Input
                         id="phonenumber"
                         value={selectedPatient.phone || ""}
-                        readOnly
+                        onChange={(event) =>
+                          handlePatientFieldChange("phone", event.target.value)
+                        }
                       />
                     </div>
                     <div>
@@ -363,7 +412,9 @@ export default function StaffPage() {
                       <Input
                         id="email"
                         value={selectedPatient.email || ""}
-                        readOnly
+                        onChange={(event) =>
+                          handlePatientFieldChange("email", event.target.value)
+                        }
                       />
                     </div>
                     <div>
@@ -373,7 +424,12 @@ export default function StaffPage() {
                       <Input
                         id="address"
                         value={selectedPatient.address || ""}
-                        readOnly
+                        onChange={(event) =>
+                          handlePatientFieldChange(
+                            "address",
+                            event.target.value
+                          )
+                        }
                       />
                     </div>
                     <div>
@@ -384,7 +440,12 @@ export default function StaffPage() {
                       <Input
                         id="preferredlanguage"
                         value={selectedPatient.language || ""}
-                        readOnly
+                        onChange={(event) =>
+                          handlePatientFieldChange(
+                            "language",
+                            event.target.value
+                          )
+                        }
                       />
                     </div>
                     <div>
@@ -394,7 +455,12 @@ export default function StaffPage() {
                       <Input
                         id="nationality"
                         value={selectedPatient.nationality || ""}
-                        readOnly
+                        onChange={(event) =>
+                          handlePatientFieldChange(
+                            "nationality",
+                            event.target.value
+                          )
+                        }
                       />
                     </div>
                     <div>
@@ -402,7 +468,12 @@ export default function StaffPage() {
                       <Input
                         id="religion"
                         value={selectedPatient.religion || ""}
-                        readOnly
+                        onChange={(event) =>
+                          handlePatientFieldChange(
+                            "religion",
+                            event.target.value
+                          )
+                        }
                       />
                     </div>
 
@@ -416,7 +487,12 @@ export default function StaffPage() {
                           <Input
                             id="emergencycontactname"
                             value={selectedPatient.emergencyContactName || ""}
-                            readOnly
+                            onChange={(event) =>
+                              handlePatientFieldChange(
+                                "emergencyContactName",
+                                event.target.value
+                              )
+                            }
                           />
                         </div>
                         <div>
@@ -428,7 +504,12 @@ export default function StaffPage() {
                             value={
                               selectedPatient.emergencyContactRelationship || ""
                             }
-                            readOnly
+                            onChange={(event) =>
+                              handlePatientFieldChange(
+                                "emergencyContactRelationship",
+                                event.target.value
+                              )
+                            }
                           />
                         </div>
                       </div>
