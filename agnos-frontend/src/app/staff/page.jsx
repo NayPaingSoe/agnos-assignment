@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { io } from "socket.io-client";
 import { Trash } from "lucide-react";
 import { MotionContainer, MotionCard } from "@/components/ui/motion-container";
@@ -50,38 +53,75 @@ const getStatusConfig = (status) => {
   }
 };
 
+const STAFF_FORM_SCHEMA = z.object({
+  firstName: z.string().optional(),
+  middleName: z.string().optional(),
+  lastName: z.string().optional(),
+  dob: z.string().optional(),
+  gender: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().optional(),
+  address: z.string().optional(),
+  language: z.string().optional(),
+  nationality: z.string().optional(),
+  emergencyContactName: z.string().optional(),
+  emergencyContactRelationship: z.string().optional(),
+  religion: z.string().optional(),
+});
+
+const STAFF_DEFAULT_VALUES = {
+  firstName: "",
+  middleName: "",
+  lastName: "",
+  dob: "",
+  gender: "",
+  phone: "",
+  email: "",
+  address: "",
+  language: "",
+  nationality: "",
+  emergencyContactName: "",
+  emergencyContactRelationship: "",
+  religion: "",
+};
+
+const STAFF_FORM_FIELDS = Object.keys(STAFF_DEFAULT_VALUES);
+
+const normalizePatientValues = (patient) => ({
+  firstName: patient?.firstName || "",
+  middleName: patient?.middleName || "",
+  lastName: patient?.lastName || "",
+  dob: patient?.dob || "",
+  gender: patient?.gender || "",
+  phone: patient?.phone || "",
+  email: patient?.email || "",
+  address: patient?.address || "",
+  language: patient?.language || "",
+  nationality: patient?.nationality || "",
+  emergencyContactName: patient?.emergencyContactName || "",
+  emergencyContactRelationship: patient?.emergencyContactRelationship || "",
+  religion: patient?.religion || "",
+});
+
+const areValuesEqual = (a, b) =>
+  STAFF_FORM_FIELDS.every((field) => (a?.[field] ?? "") === (b?.[field] ?? ""));
+
 export default function StaffPage() {
   const [patients, setPatients] = useState({});
   const [selectedId, setSelectedId] = useState(null);
-
-  const handlePatientFieldChange = useCallback(
-    (field, value) => {
-      if (!selectedId) return;
-
-      setPatients((previousPatients) => {
-        const currentPatient = previousPatients[selectedId];
-        if (!currentPatient) return previousPatients;
-        if (currentPatient[field] === value) return previousPatients;
-
-        const updatedPatient = {
-          ...currentPatient,
-          [field]: value,
-          _updatedAt: Date.now(),
-        };
-
-        socket.emit("staff:update", {
-          id: selectedId,
-          data: { [field]: value },
-        });
-
-        return {
-          ...previousPatients,
-          [selectedId]: updatedPatient,
-        };
-      });
-    },
-    [selectedId]
-  );
+  const {
+    register,
+    watch,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(STAFF_FORM_SCHEMA),
+    defaultValues: STAFF_DEFAULT_VALUES,
+    mode: "onChange",
+  });
+  const isSyncingRef = useRef(false);
+  const previousValuesRef = useRef(STAFF_DEFAULT_VALUES);
 
   const handleRemovePatient = useCallback(
     (patientId) => {
@@ -170,6 +210,74 @@ export default function StaffPage() {
     () => getStatusConfig(selectedPatient?.status),
     [selectedPatient?.status]
   );
+  const normalizedSelectedValues = useMemo(
+    () =>
+      selectedPatient
+        ? normalizePatientValues(selectedPatient)
+        : STAFF_DEFAULT_VALUES,
+    [selectedPatient]
+  );
+
+  const syncFormWithSelection = useCallback(() => {
+    if (areValuesEqual(previousValuesRef.current, normalizedSelectedValues)) {
+      return;
+    }
+
+    isSyncingRef.current = true;
+    reset(normalizedSelectedValues);
+    previousValuesRef.current = normalizedSelectedValues;
+    requestAnimationFrame(() => {
+      isSyncingRef.current = false;
+    });
+  }, [normalizedSelectedValues, reset]);
+
+  const emitStaffChanges = useCallback(
+    (values) => {
+      if (isSyncingRef.current || !selectedId) return;
+
+      const changedFields = {};
+      STAFF_FORM_FIELDS.forEach((field) => {
+        if (values[field] !== previousValuesRef.current[field]) {
+          changedFields[field] = values[field];
+        }
+      });
+
+      if (Object.keys(changedFields).length === 0) return;
+
+      socket.emit("staff:update", {
+        id: selectedId,
+        data: changedFields,
+      });
+
+      setPatients((previousPatients) => {
+        const currentPatient = previousPatients[selectedId];
+        if (!currentPatient) return previousPatients;
+
+        const updatedPatient = {
+          ...currentPatient,
+          ...changedFields,
+          _updatedAt: Date.now(),
+        };
+
+        return {
+          ...previousPatients,
+          [selectedId]: updatedPatient,
+        };
+      });
+
+      previousValuesRef.current = { ...values };
+    },
+    [selectedId, setPatients]
+  );
+
+  useEffect(() => {
+    syncFormWithSelection();
+  }, [syncFormWithSelection]);
+
+  useEffect(() => {
+    const subscription = watch(emitStaffChanges);
+    return () => subscription.unsubscribe();
+  }, [watch, emitStaffChanges]);
 
   return (
     <MotionContainer
@@ -323,26 +431,17 @@ export default function StaffPage() {
                       </Label>
                       <Input
                         id="firstname"
-                        value={selectedPatient.firstName || ""}
-                        onChange={(event) =>
-                          handlePatientFieldChange(
-                            "firstName",
-                            event.target.value
-                          )
-                        }
+                        disabled={!selectedPatient}
+                        error={errors.firstName?.message}
+                        {...register("firstName")}
                       />
                     </div>
                     <div>
                       <Label htmlFor="middlename">Middle Name</Label>
                       <Input
                         id="middlename"
-                        value={selectedPatient.middleName || ""}
-                        onChange={(event) =>
-                          handlePatientFieldChange(
-                            "middleName",
-                            event.target.value
-                          )
-                        }
+                        disabled={!selectedPatient}
+                        {...register("middleName")}
                       />
                     </div>
                     <div>
@@ -351,13 +450,9 @@ export default function StaffPage() {
                       </Label>
                       <Input
                         id="lastname"
-                        value={selectedPatient.lastName || ""}
-                        onChange={(event) =>
-                          handlePatientFieldChange(
-                            "lastName",
-                            event.target.value
-                          )
-                        }
+                        disabled={!selectedPatient}
+                        error={errors.lastName?.message}
+                        {...register("lastName")}
                       />
                     </div>
 
@@ -367,10 +462,14 @@ export default function StaffPage() {
                       </Label>
                       <DatePicker
                         id="dob"
-                        value={selectedPatient.dob || ""}
+                        value={selectedPatient ? watch("dob") : ""}
                         onChange={(event) =>
-                          handlePatientFieldChange("dob", event.target.value)
+                          setValue("dob", event.target.value, {
+                            shouldValidate: true,
+                          })
                         }
+                        readOnly={!selectedPatient}
+                        error={errors.dob?.message}
                       />
                     </div>
 
@@ -380,10 +479,9 @@ export default function StaffPage() {
                       </Label>
                       <Select
                         id="gender"
-                        value={selectedPatient.gender || ""}
-                        onChange={(event) =>
-                          handlePatientFieldChange("gender", event.target.value)
-                        }
+                        disabled={!selectedPatient}
+                        error={errors.gender?.message}
+                        {...register("gender")}
                       >
                         {GENDER_OPTIONS.map((option) => (
                           <option key={option.value} value={option.value}>
@@ -399,10 +497,9 @@ export default function StaffPage() {
                       </Label>
                       <Input
                         id="phonenumber"
-                        value={selectedPatient.phone || ""}
-                        onChange={(event) =>
-                          handlePatientFieldChange("phone", event.target.value)
-                        }
+                        disabled={!selectedPatient}
+                        error={errors.phone?.message}
+                        {...register("phone")}
                       />
                     </div>
                     <div>
@@ -411,10 +508,9 @@ export default function StaffPage() {
                       </Label>
                       <Input
                         id="email"
-                        value={selectedPatient.email || ""}
-                        onChange={(event) =>
-                          handlePatientFieldChange("email", event.target.value)
-                        }
+                        disabled={!selectedPatient}
+                        error={errors.email?.message}
+                        {...register("email")}
                       />
                     </div>
                     <div>
@@ -423,13 +519,9 @@ export default function StaffPage() {
                       </Label>
                       <Input
                         id="address"
-                        value={selectedPatient.address || ""}
-                        onChange={(event) =>
-                          handlePatientFieldChange(
-                            "address",
-                            event.target.value
-                          )
-                        }
+                        disabled={!selectedPatient}
+                        error={errors.address?.message}
+                        {...register("address")}
                       />
                     </div>
                     <div>
@@ -439,13 +531,9 @@ export default function StaffPage() {
                       </Label>
                       <Input
                         id="preferredlanguage"
-                        value={selectedPatient.language || ""}
-                        onChange={(event) =>
-                          handlePatientFieldChange(
-                            "language",
-                            event.target.value
-                          )
-                        }
+                        disabled={!selectedPatient}
+                        error={errors.language?.message}
+                        {...register("language")}
                       />
                     </div>
                     <div>
@@ -454,26 +542,18 @@ export default function StaffPage() {
                       </Label>
                       <Input
                         id="nationality"
-                        value={selectedPatient.nationality || ""}
-                        onChange={(event) =>
-                          handlePatientFieldChange(
-                            "nationality",
-                            event.target.value
-                          )
-                        }
+                        disabled={!selectedPatient}
+                        error={errors.nationality?.message}
+                        {...register("nationality")}
                       />
                     </div>
                     <div>
                       <Label htmlFor="religion">Religion</Label>
                       <Input
                         id="religion"
-                        value={selectedPatient.religion || ""}
-                        onChange={(event) =>
-                          handlePatientFieldChange(
-                            "religion",
-                            event.target.value
-                          )
-                        }
+                        disabled={!selectedPatient}
+                        error={errors.religion?.message}
+                        {...register("religion")}
                       />
                     </div>
 
@@ -486,13 +566,8 @@ export default function StaffPage() {
                           <Label htmlFor="emergencycontactname">Name</Label>
                           <Input
                             id="emergencycontactname"
-                            value={selectedPatient.emergencyContactName || ""}
-                            onChange={(event) =>
-                              handlePatientFieldChange(
-                                "emergencyContactName",
-                                event.target.value
-                              )
-                            }
+                            disabled={!selectedPatient}
+                            {...register("emergencyContactName")}
                           />
                         </div>
                         <div>
@@ -501,15 +576,8 @@ export default function StaffPage() {
                           </Label>
                           <Input
                             id="emergencycontactrelationship"
-                            value={
-                              selectedPatient.emergencyContactRelationship || ""
-                            }
-                            onChange={(event) =>
-                              handlePatientFieldChange(
-                                "emergencyContactRelationship",
-                                event.target.value
-                              )
-                            }
+                            disabled={!selectedPatient}
+                            {...register("emergencyContactRelationship")}
                           />
                         </div>
                       </div>
